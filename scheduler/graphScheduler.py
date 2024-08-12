@@ -83,17 +83,17 @@ class TaskSchedulerGUI:
         self.name_label = tk.Label(root, text="Aufgabenname:")
         self.namel_label.grid(row=0, column=0)
         self.name_entry = tk.Entry(root)
-        self.name_entry.grod(row=0, column=1)
+        self.name_entry.grid(row=0, column=1)
 
         self.priority_label = tk.Label(root, text="Priorität:")
         self.priority_label.grid(row=1, column=0)
-        self.priority_entry = tk.Entry(rooot)
+        self.priority_entry = tk.Entry(root)
         self.priority_entry.grid(row=1, column=1)
 
         self.description_label = tk.Label(root, text="Beschreibung")
         self.description_label.grid(row=2, column=0)
         self.description_entry = tk.Entry(root)
-        self.description_entry_grid( row=2, column=1)
+        self.description_entry.grid( row=2, column=1)
 
         self.add_button = tk.Button(root, text="Aufgabe hinzufügen", command=self.add_task)
         self.add_buttion.grid(row=3, column=0, columnspan=2)
@@ -110,7 +110,7 @@ class TaskSchedulerGUI:
         self.save_button = tk.Button(root, text="Aufgaben Speichern", command=self.save_tasks)
         self.save_button.grid(row=6, column=1)
 
-        self.update:task_list()
+        self.update_task_list()
 
 def main():
     scheduler = TaskScheduler()
