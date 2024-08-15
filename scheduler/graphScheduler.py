@@ -46,15 +46,11 @@ class TaskScheduler:
 
     def show_tasks(self):
         items = sorted(self.tasks.queue, key=lambda x: x[0])
-        for item in items:
-            print(item[-1])
+        return [item[-1] for item in items]
 
     def process_task(self):
         if not self.tasks.is_empty():
-            task = self.tasks.pop()
-            print(f"Verarbeite Aufgabe: {task}")
-        else:
-            print("Keine Aufgabe zu verarbeiten!")
+            return self.tasks.pop()
 
     def remove_task(self, name):
         self.tasks.queue = [(p,i,t) for p, i, t in self.tasks.queue if t.name != name]
@@ -75,13 +71,13 @@ class TaskScheduler:
 
 class TaskSchedulerGUI:
     def __init__(self, root):
-        self.schedulter = TaskScheduler()
+        self.scheduler = TaskScheduler()
 
         self.root = root
         self.root.title("Task Scheduler")
 
         self.name_label = tk.Label(root, text="Aufgabenname:")
-        self.namel_label.grid(row=0, column=0)
+        self.name_label.grid(row=0, column=0)
         self.name_entry = tk.Entry(root)
         self.name_entry.grid(row=0, column=1)
 
@@ -96,60 +92,83 @@ class TaskSchedulerGUI:
         self.description_entry.grid( row=2, column=1)
 
         self.add_button = tk.Button(root, text="Aufgabe hinzufügen", command=self.add_task)
-        self.add_buttion.grid(row=3, column=0, columnspan=2)
+        self.add_button.grid(row=3, column=0, columnspan=2)
 
         self.task_listbox = tk.Listbox(root, height=10, width=50)
         self.task_listbox.grid(row=4, column=0, columnspan=2)
 
-        self.process_button = tk.Button(root, text="Aufgabe verarbeiten", command=self.proccess_task)
+        self.process_button = tk.Button(root, text="Aufgabe verarbeiten", command=self.process_task)
         self.process_button.grid(row=5, column=0)
 
         self.remove_button = tk.Button(root, text="Aufgabe entfernen", command=self.remove_task)
-        self.remove_button.grid(row=6, column=0)
+        self.remove_button.grid(row=5, column=1)
 
         self.save_button = tk.Button(root, text="Aufgaben Speichern", command=self.save_tasks)
-        self.save_button.grid(row=6, column=1)
+        self.save_button.grid(row=6, column=0)
+
+        self.load_button = tk.Button(root, text="Aufgabe Laden", command=self.load_tasks)
+        self.load_button.grid(row=6, column=1)
 
         self.update_task_list()
 
-def main():
-    scheduler = TaskScheduler()
-
-    while True:
-        print("\n1. Aufgabe hinzufügen")
-        print("2. Aufgabe anzeigen")
-        print("3. Aufgabe verarbeiten")
-        print("4. Aufgabe entfernen")
-        print("5. Aufgaben speichern")
-        print("6. Aufgaben laden")
-        print("7. Scheduler beenden")
-
-        choice = input("wähle eine Option: ")
-        
-        if choice == "1":
-            name = input("Name der Aufgabe: ")
-            priority = int(input("Priorität der Aufgabe: "))
-            desc = input("Beschreibung der Aufgabe (optional): ")
-            task = Task(name, priority, desc)
-            scheduler.add_task(task)
-        elif choice == "2":
-            scheduler.show_tasks()
-        elif choice == "3":
-            scheduler.process_task()
-        elif choice == "4":
-            name = input("Name der zu entfernenden Aufgabe: " )
-            scheduler.remove_task(name)
-        elif choice == "5":
-            filename = input("Dateiname zum Speichern: ")
-            scheduler.save_tasks(filename)
-        elif choice == "6":
-            filename = input("Name der zu ladenen Datei: ")
-            scheduler.load_tasks(filename)
-        elif choice == "7":
-            break
+    def add_task(self):
+        name = self.name_entry.get()
+        priority = self.priority_entry.get() # todo check range 0-100
+        description = self.description_entry.get()
+        if name and priority:
+            try:
+                priority = int(priority)
+                task = Task(name, priority, description)
+                self.scheduler.add_task(task)
+                self.update_task_list()
+                self.name_entry.delete(0, tk.END)
+                self.priority_entry.delete(0, tk.END)
+                self.description_entry.delete(0, tk.END)
+            except ValueError:
+                messagebox.showerror("ungültige Priorität", "Priorität muss eine Zahl sein.")
         else:
-            print("ungültige Auswahl, bitte erneut versuchen.")
+            messagebox.showerror("Fehlende Information", "Name und Priorität sind erforderlich")
 
+    def update_task_list(self):
+        self.task_listbox.delete(0, tk.END)
+        tasks = self.scheduler.show_tasks()
+        for task in tasks:
+            self.task_listbox.insert(tk.END, f"{task.priority} - '{task.name}' ({task.desc})")
+
+    def process_task(self):
+        task = self.scheduler.process_task()
+        if task:
+            messagebox.showinfo("Aufgabe verarbeitet", f"Aufabge '{task.name}' wurde verarbeitet")
+            self.update_task_list()
+        else:
+            messagebox.showinfo("Keine Aufgaben", "Keine Aufgaben zu verarbeiten.")
+
+    def remove_task(self):
+        selected = self.task_listbox.curselection()
+        if selected:
+            task_info = self.task_listbox.get(selected[0])
+            task_name = task_info.split("'")[1]
+            self.scheduler.remove_task(task_name)
+            self.update_task_list()
+        else:
+            messagebox.showerror("Keine Auswahl", "Keine Aufgabe ausgewählt.")
+
+    def save_tasks(self):
+        filename = "tasks.json"
+        self.scheduler.save_tasks(filename)
+        messagebox.showinfo("Aufaben gespeichert", f"Aufgaben wurden in {filename} gespeichert.")
+
+    def load_tasks(self):
+        filename = "tasks.json"
+        self.scheduler.load_tasks(filename)
+        self.update_task_list()
+        messagebox.showinfo("Aufgaben geladen", f"Aufgaben wurden aus {filename} geladen.")
+
+def main():
+    root = tk.Tk()
+    gui = TaskSchedulerGUI(root)
+    root.mainloop()
+    
 
 if __name__ == "__main__":
     main()
