@@ -1,12 +1,25 @@
 import tkinter as tk
 from tkinter import messagebox
 from data import *
+from PIL import Image, ImageTk
 
 class LeaptorGUI:
     def __init__(self):
         self.employees = EmployeeList()
         self.root = tk.Tk()
         self.root.title("Leaptor")
+
+        windowWidth = 500
+        windowHeight = 700
+
+        self.canvas = tk.Canvas(self.root, width=windowWidth, height=windowHeight)
+        self.canvas.grid(row=0, column=0, columnspan=3, rowspan=7)
+
+        texture = Image.open("pics/dino-texture.png")
+        texture = texture.resize((windowWidth, windowHeight), Image.Resampling.LANCZOS)
+        self.texture = ImageTk.PhotoImage(texture)
+        
+        self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
 
         self.label_name = tk.Label(self.root, text = "Vorname & Nachname:")
         self.label_name.grid(row=0, column=0)
@@ -49,6 +62,14 @@ class LeaptorGUI:
         self.button_load_file.grid(row=6, column=0)
         self.button_save_file = tk.Button(self.root, text="Mitarbeiter in Datei speichern", command=self.save_file)
         self.button_save_file.grid(row=6, column=1)
+
+#        image = Image.open("pics/Profilbild.png")
+#        print(image.size)
+#        image = image.resize((50,50), Image.Resampling.LANCZOS)
+#        self.avatar = ImageTk.PhotoImage(image)
+#
+#        self.label_avatar = tk.Label(self.root, image=self.avatar)
+#        self.label_avatar.grid(row=7, column=0, pady=10)
 
 
     def clear_entries(self):

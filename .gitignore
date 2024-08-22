@@ -1,0 +1,3 @@
+.ignore
+**/__pycache__/
+leaptor/__pycache__/gui.cpython-310.pyc
