@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from data import *
 from PIL import Image, ImageTk
 
@@ -8,6 +8,9 @@ class LeaptorGUI:
         self.employees = EmployeeList()
         self.root = tk.Tk()
         self.root.title("Leaptor")
+        
+        self.root.tk.call("source", "theme/azure.tcl")
+        self.root.tk.call("set_theme", "dark")
 
         windowWidth = 500
         windowHeight = 700
