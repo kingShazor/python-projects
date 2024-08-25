@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
 from data import *
 from PIL import Image, ImageTk
 
@@ -12,8 +12,8 @@ class LeaptorGUI:
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
 
-        windowWidth = 500
-        windowHeight = 700
+        windowWidth = 720
+        windowHeight = 720
 
         self.canvas = tk.Canvas(self.root, width=windowWidth, height=windowHeight)
         self.canvas.grid(row=0, column=0, columnspan=3, rowspan=7)
@@ -24,56 +24,58 @@ class LeaptorGUI:
         
         self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
 
+        self.fallback_avatar = "pics/fallback.png"
+        image = Image.open(self.fallback_avatar)
+
+        print(image.size) # debug can be removede
+        image = image.resize((140,140), Image.Resampling.LANCZOS)
+        self.avatar = ImageTk.PhotoImage(image)
+
+        self.label_avatar = tk.Label(self.root, image=self.avatar)
+        self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
         self.label_name = tk.Label(self.root, text = "Vorname & Nachname:")
-        self.label_name.grid(row=0, column=0)
+        self.label_name.grid(row=0, column=1)
         self.entry_name = tk.Entry(self.root)
-        self.entry_name.grid(row=0, column=1)
+        self.entry_name.grid(row=0, column=2)
 
         self.label_jobDesc = tk.Label(self.root, text="Jobprofil:")
-        self.label_jobDesc.grid(row=1, column=0)
+        self.label_jobDesc.grid(row=1, column=1)
         self.entry_jobDesc = tk.Entry(self.root)
-        self.entry_jobDesc.grid(row=1, column=1)
+        self.entry_jobDesc.grid(row=1, column=2)
 
         self.label_salary = tk.Label(self.root, text="Gehaltsgruppe:")
-        self.label_salary.grid(row=2, column=0)
+        self.label_salary.grid(row=2, column=1)
 
         self.salary_value = tk.StringVar(self.root)
         self.salary_values = ["1", "2", "3", "4", "5", "6", "7", "8"]
         self.salary_default = 3
         self.salary_value.set(self.salary_values[self.salary_default])
         self.entry_salary = tk.OptionMenu(self.root, self.salary_value, *self.salary_values)
-        self.entry_salary.grid(row=2, column=1)
+        self.entry_salary.grid(row=2, column=2)
 
         self.label_performance = tk.Label(self.root, text="Leistungsbewertung")
-        self.label_performance.grid(row=3, column=0)
+        self.label_performance.grid(row=3, column=1)
         
         self.performance_value = tk.StringVar(self.root)
         self.performance_values = ["d","c","b3","b2","b1","a"]
         self.performance_default = 3
         self.performance_value.set(self.performance_values[self.performance_default])
         self.entry_performance = tk.OptionMenu(self.root, self.performance_value, *self.performance_values)
-        self.entry_performance.grid(row=3, column=1)
+        self.entry_performance.grid(row=3, column=2)
 
+        self.button_change_avatar = tk.Button(self.root, text="Profilbild ändern", command=self.get_avatar_path) # todo function
+        self.button_change_avatar.grid(row=4, column=1)
         self.button_save_employee = tk.Button(self.root, text="Mitarbeiter speichern", command=self.save_employee)
-        self.button_save_employee.grid(row=4, column=1)
+        self.button_save_employee.grid(row=4, column=2)
 
-        self.employee_list_box = tk.Listbox(self.root, width=50, height=25)
-        self.employee_list_box.grid(row=5, columnspan=2, column=0)
+        self.employee_list_box = tk.Listbox(self.root, width=40, height=25)
+        self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=3, pady=10)
         self.employee_list_box.bind("<Double-1>", self.on_double_click)
 
         self.button_load_file = tk.Button(self.root, text="Mitarbeiter aus Datei lesen", command=self.load_file)
-        self.button_load_file.grid(row=6, column=0)
+        self.button_load_file.grid(row=5, column=2)
         self.button_save_file = tk.Button(self.root, text="Mitarbeiter in Datei speichern", command=self.save_file)
-        self.button_save_file.grid(row=6, column=1)
-
-#        image = Image.open("pics/Profilbild.png")
-#        print(image.size)
-#        image = image.resize((50,50), Image.Resampling.LANCZOS)
-#        self.avatar = ImageTk.PhotoImage(image)
-#
-#        self.label_avatar = tk.Label(self.root, image=self.avatar)
-#        self.label_avatar.grid(row=7, column=0, pady=10)
-
+        self.button_save_file.grid(row=6, column=2)
 
     def clear_entries(self):
         self.entry_name.delete(0, tk.END)
@@ -105,6 +107,14 @@ class LeaptorGUI:
         self.employee_list_box.delete(0, tk.END)
         for employee in self.employees.get_employees():
            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}");
+    
+    def get_avatar_path(self):
+        file_path = filedialog.askopenfilename( title="Bild auswählen",
+                                               filetypes=[("Image Files", "*.png")]) #;*.jpg;*.jpeg;*.bmp;*.gif")] )
+        if (file_path):
+            print(f"file ausgewählt: {file_path}")
+        else:
+            print("Keine File wurde ausgewält")
 
     def save_employee(self):
         name = self.entry_name.get()
