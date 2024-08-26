@@ -31,10 +31,10 @@ class LeaptorGUI:
         self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
 
         self.fallback_avatar = "pics/fallback.png"
-        self.load_avatar(None)
 
-        self.label_avatar = tk.Label(self.root, image=self.avatar)
+        self.label_avatar = tk.Label(self.root)
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
+        self.load_avatar(None)
         self.label_name = tk.Label(self.root, text = "Vorname & Nachname:")
         self.label_name.grid(row=0, column=1)
         self.entry_name = tk.Entry(self.root)
@@ -94,6 +94,7 @@ class LeaptorGUI:
         print(image.size) # debug can be removede
         image = image.resize((140,140), Image.Resampling.LANCZOS)
         self.avatar = ImageTk.PhotoImage(image)
+        self.label_avatar.config(image=self.avatar)
 
     def clear_entries(self):
         self.entry_name.delete(0, tk.END)
@@ -126,7 +127,7 @@ class LeaptorGUI:
     def refresh_employee_list_box(self):
         self.employee_list_box.delete(0, tk.END)
         for employee in self.employees.get_employees():
-           self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}");
+            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}:{employee.avatar_path}");
     
     def get_avatar_path(self):
         #self.root.tk.call("set_theme", "light")
