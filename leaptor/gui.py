@@ -109,12 +109,15 @@ class LeaptorGUI:
            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}");
     
     def get_avatar_path(self):
+        self.root.tk.call("set_theme", "light")
         file_path = filedialog.askopenfilename( title="Bild auswählen",
+                                                initialdir=".",
                                                filetypes=[("Image Files", "*.png")]) #;*.jpg;*.jpeg;*.bmp;*.gif")] )
         if (file_path):
             print(f"file ausgewählt: {file_path}")
         else:
             print("Keine File wurde ausgewält")
+        self.root.tk.call("set_theme", "dark")
 
     def save_employee(self):
         name = self.entry_name.get()
