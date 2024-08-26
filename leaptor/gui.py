@@ -11,6 +11,12 @@ class LeaptorGUI:
         
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+        self.rootFileDialog = tk.Tk()
+        self.rootFileDialog.tk.call("source", "theme/azure.tcl")
+        self.rootFileDialog.tk.call("set_theme", "light")
+        self.rootFileDialog.withdraw()
 
         windowWidth = 720
         windowHeight = 720
@@ -25,11 +31,7 @@ class LeaptorGUI:
         self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
 
         self.fallback_avatar = "pics/fallback.png"
-        image = Image.open(self.fallback_avatar)
-
-        print(image.size) # debug can be removede
-        image = image.resize((140,140), Image.Resampling.LANCZOS)
-        self.avatar = ImageTk.PhotoImage(image)
+        self.load_avatar(None)
 
         self.label_avatar = tk.Label(self.root, image=self.avatar)
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
@@ -77,11 +79,28 @@ class LeaptorGUI:
         self.button_save_file = tk.Button(self.root, text="Mitarbeiter in Datei speichern", command=self.save_file)
         self.button_save_file.grid(row=6, column=2)
 
+    def on_closing(self):
+        if self.rootFileDialog:
+            self.rootFileDialog.destroy()
+        self.root.destroy()
+
+    def load_avatar(self, avatar_path):
+        self.avatar_path = avatar_path
+        if avatar_path:
+            image = Image.open(avatar_path)
+        else:
+            image = Image.open(self.fallback_avatar)
+
+        print(image.size) # debug can be removede
+        image = image.resize((140,140), Image.Resampling.LANCZOS)
+        self.avatar = ImageTk.PhotoImage(image)
+
     def clear_entries(self):
         self.entry_name.delete(0, tk.END)
         self.entry_jobDesc.delete(0, tk.END)
         self.salary_value.set(self.salary_values[self.salary_default])
         self.performance_value.set(self.performance_values[self.performance_default])
+        self.load_avatar(None)
 
     def get_current_selection(self):
         selected = self.employee_list_box.curselection()
@@ -100,6 +119,7 @@ class LeaptorGUI:
             self.entry_jobDesc.insert(0, employee.jobDesc)
             self.performance_value.set(employee.performanceGroup)
             self.salary_value.set(employee.salaryGroup)
+            self.load_avatar(employee.avatar_path)
         else:
             messagebox.showerror("Fehler", "Das Hervorheben eines Mitarbeiters ist unerwartet fehlgeschlaten")
 
@@ -109,15 +129,17 @@ class LeaptorGUI:
            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}");
     
     def get_avatar_path(self):
-        self.root.tk.call("set_theme", "light")
+        #self.root.tk.call("set_theme", "light")
         file_path = filedialog.askopenfilename( title="Bild auswählen",
+                                                master=self.rootFileDialog,
                                                 initialdir=".",
-                                               filetypes=[("Image Files", "*.png")]) #;*.jpg;*.jpeg;*.bmp;*.gif")] )
-        if (file_path):
+                                                filetypes=[("Image Files", "*.png")]) #;*.jpg;*.jpeg;*.bmp;*.gif")] )
+        if file_path:
             print(f"file ausgewählt: {file_path}")
         else:
             print("Keine File wurde ausgewält")
-        self.root.tk.call("set_theme", "dark")
+        #self.root.tk.call("set_theme", "dark") mysterios error!
+        self.load_avatar(file_path)
 
     def save_employee(self):
         name = self.entry_name.get()
@@ -125,7 +147,7 @@ class LeaptorGUI:
         salaryGroup = self.salary_value.get()
         performance = self.performance_value.get()
 
-        employee = Employee(name, jobDesc, salaryGroup, performance)
+        employee = Employee(name, jobDesc, salaryGroup, performance, self.avatar_path)
         self.employees.add_employee(employee);
         self.refresh_employee_list_box()
         self.clear_entries()
