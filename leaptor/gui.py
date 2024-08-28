@@ -8,6 +8,9 @@ class LeaptorGUI:
         self.employees = EmployeeList()
         self.root = tk.Tk()
         self.root.title("Leaptor")
+
+        #self.root.grid_rowconfigure(0, pad=5) todo wider wech
+        #self.root.grid_columnconfigure(2, weight=1)
         
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
@@ -32,7 +35,11 @@ class LeaptorGUI:
 
         self.fallback_avatar = "pics/fallback.png"
 
-        self.label_avatar = tk.Label(self.root)
+#       image_company = Image.open("pics/L-Tec.png")
+#       image_company = image_company.resize((140,140), Image.Resampling.LANCZOS)
+#       self.photo_company = ImageTk.PhotoImage(image_company)
+
+        self.label_avatar = tk.Label(self.root) 
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
         self.load_avatar(None)
         self.label_name = tk.Label(self.root, text = "Vorname & Nachname:")
@@ -49,7 +56,7 @@ class LeaptorGUI:
         self.label_salary.grid(row=2, column=1)
 
         self.salary_value = tk.StringVar(self.root)
-        self.salary_values = ["1", "2", "3", "4", "5", "6", "7", "8"]
+        self.salary_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
         self.salary_default = 3
         self.salary_value.set(self.salary_values[self.salary_default])
         self.entry_salary = tk.OptionMenu(self.root, self.salary_value, *self.salary_values)
@@ -71,13 +78,18 @@ class LeaptorGUI:
         self.button_save_employee.grid(row=4, column=2)
 
         self.employee_list_box = tk.Listbox(self.root, width=40, height=25)
-        self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=3, pady=10)
+        self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=6, pady=10)
         self.employee_list_box.bind("<Double-1>", self.on_double_click)
 
         self.button_load_file = tk.Button(self.root, text="Mitarbeiter aus Datei lesen", command=self.load_file)
         self.button_load_file.grid(row=5, column=2)
         self.button_save_file = tk.Button(self.root, text="Mitarbeiter in Datei speichern", command=self.save_file)
         self.button_save_file.grid(row=6, column=2)
+        self.button_plot_performance = tk.Button(self.root, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
+        self.button_plot_performance.grid(row=7, column=2)
+
+#       self.label_company = tk.Label(self.root, image=self.photo_company)
+#       self.label_company.grid(row=10, column=2, pady=10)
 
     def on_closing(self):
         if self.rootFileDialog:
@@ -174,6 +186,8 @@ class LeaptorGUI:
         except Exception as e:
             messagebox.showerror( "Ladefehler", f"Es ist ein unerwarteter Fehler aufgetreten: {e}")
 
+    def plot_performance(self):
+        self.employees.plot_performance()
 
     def run(self):
         self.root.mainloop()
