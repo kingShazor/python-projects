@@ -73,9 +73,11 @@ class LeaptorGUI:
         self.entry_performance.grid(row=3, column=2)
 
         self.button_change_avatar = tk.Button(self.root, text="Profilbild ändern", command=self.get_avatar_path) # todo function
-        self.button_change_avatar.grid(row=4, column=1)
+        self.button_change_avatar.grid(row=4, column=0)
         self.button_save_employee = tk.Button(self.root, text="Mitarbeiter speichern", command=self.save_employee)
-        self.button_save_employee.grid(row=4, column=2)
+        self.button_save_employee.grid(row=4, column=1)
+        self.button_remove_employee = tk.Button(self.root, text="Mitarbeiter löschen", command=self.remove_employee)
+        self.button_remove_employee.grid(row=4, column=2)
 
         self.employee_list_box = tk.Listbox(self.root, width=40, height=25)
         self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=6, pady=10)
@@ -115,6 +117,22 @@ class LeaptorGUI:
         self.performance_value.set(self.performance_values[self.performance_default])
         self.load_avatar(None)
 
+    def remove_employee(self):
+        name = self.entry_name.get()
+        if name:
+            success = False
+            employee = self.employees.find_employee(name)
+            if employee:
+                res = self.employees.remove(employee)
+                if res:
+                    self.refresh_employee_list_box()
+                    self.clear_entries()
+                    success = True
+            if not success:
+                messagebox.showerror("Löschfehlschlag", f"Das Löschen des Mitarbeiter ist fehlgeschlagen. Mitarbeiter '{name}' konnte nicht gefunden werden.")
+        else:
+            messagebox.showerror("Löschfehlschlag", "Das Löschen des Mitarbeiter ist fehlgeschlagen. Keinen ausgewählt, oder?")
+
     def get_current_selection(self):
         selected = self.employee_list_box.curselection()
         if selected:
@@ -139,7 +157,7 @@ class LeaptorGUI:
     def refresh_employee_list_box(self):
         self.employee_list_box.delete(0, tk.END)
         for employee in self.employees.get_employees():
-            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}:{employee.avatar_path}");
+            self.employee_list_box.insert(tk.END, f"{employee.name}-'{employee.jobDesc}':{employee.salaryGroup}{employee.performanceGroup}");
     
     def get_avatar_path(self):
         #self.root.tk.call("set_theme", "light")
@@ -159,24 +177,37 @@ class LeaptorGUI:
         jobDesc = self.entry_jobDesc.get()
         salaryGroup = self.salary_value.get()
         performance = self.performance_value.get()
+        name_min_length = 5
 
-        employee = Employee(name, jobDesc, salaryGroup, performance, self.avatar_path)
-        self.employees.add_employee(employee);
-        self.refresh_employee_list_box()
-        self.clear_entries()
+        if len(name) >= name_min_length:
+            employee = Employee(name, jobDesc, salaryGroup, performance, self.avatar_path)
+            self.employees.add_employee(employee);
+            self.refresh_employee_list_box()
+            self.clear_entries()
+        else:
+            messagebox.showerror("Mitarbeitername ist ungültig", f"Der Name des Mitarbeiters ist nicht lang genug. Es muss mindestens {name_min_length}-Zeichen lang sein!")
 
     def save_file(self):
+        file_name = "employee.json" # todo nur einmal deklarieren
         try:
-            file_name = "employee.json"
-            self.employees.save_file(file_name)
-            messagebox.showinfo( "Mitarbeiter gespeichert", f"Mitarbeiter erfolgreich in der Datei {file_name} gespeichert!")
+            list_length = len(self.employees.list)
+            if list_length > 0:
+                save = True
+                if list_length < self.employees.file_size(file_name):
+                    save = messagebox.askokcancel( "Mitarbeiterdatei überschreiben?", "Die vorhande Mitarbeiterdatei ist größer als die aktuelle Liste. Wollen sie die Datei mit den aktuellen Werten überschreiben" )
+
+                if save:
+                    self.employees.save_file(file_name)
+                    messagebox.showinfo( "Mitarbeiter gespeichert", f"Mitarbeiter erfolgreich in der Datei {file_name} gespeichert!")
+            else:
+                messagebox.showerror( "Schreibfehler", "Es ist kein Mitarbeiter zum schreiben vorhanden!")
         except Exception as e:
             messagebox.showerror( "Schreibefehler", f"Es ist ein unerwarteter Fehler aufgetreten: {e}")
 
     def load_file(self):
         try:
             file_name = "employee.json"
-            self.employee_list_box.delete(0, tk.END) # todo später abmischen
+            self.employee_list_box.delete(0, tk.END)
 
             self.employees.load_file(file_name)
             self.refresh_employee_list_box()

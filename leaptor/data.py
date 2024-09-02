@@ -40,6 +40,13 @@ class EmployeeList:
 
     def clear(self):
         self.list.clear()
+    
+    def remove(self, employee):
+        try:
+            self.list.remove(employee)
+            return True
+        except ValueError:
+            return False
 
     def save_file(self, filename):
         out = []
@@ -47,11 +54,18 @@ class EmployeeList:
             out.append( (employee.name, employee.jobDesc, employee.salaryGroup, employee.performanceGroup, employee.avatar_path))
         with open(filename, 'w') as file:
             json.dump(out, file)
-    
-    def load_file(self, filename):
+   
+    def load_from_file(self,filename):
         with open(filename, 'r') as file:
             employees = json.load(file)
+        return employees
+
+    def file_size(self, filename):
+        return len(self.load_from_file(filename))
+
+    def load_file(self, filename):
             self.clear()
+            employees = self.load_from_file(filename)
             for employee_data in employees:
                 if len(employee_data) == 4:
                     name, jobDesc, salaryGroup, performanceGroup = employee_data
@@ -84,12 +98,15 @@ class EmployeeList:
         allcount = 0
         balancing_factor = self.calc_balancing_factor()
         print(f"balancing factor: {balancing_factor}")
+        res = []
         for desc in self.performance_desc:
             count = self.normalization(i) * len(self.list) * balancing_factor
             allcount += count
-            print( f"value expected for {desc}: {count}")
+            res.append(round(count))
+            print( f"value expected for {desc}: {res[-1]}")
             i += 1
         print( f"allcount: {allcount}")
+        return res
 
     def plot_performance(self):
         plt.style.use('dark_background')
@@ -99,5 +116,11 @@ class EmployeeList:
         plt.title("Leistungsbewertung von L-Tec")
         plt.legend()
         plt.show()
-        self.calc_normation()
+        target_values = self.calc_normation()
+        values = self.get_values()
+        for i in range(len(target_values)):
+            delta = target_values[i] - values[i]
+            print(f"{self.performance_desc[i]} has a delta value {delta}")
+
+        
 
