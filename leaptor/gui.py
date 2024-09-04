@@ -15,6 +15,9 @@ class LeaptorGUI:
         self.mainFrame = tk.Frame(self.root)
         self.mainFrame.grid(row=0, column=0)
 
+        self.teamLeadFrame = tk.Frame(self.root)
+        self.teamLeadFrame.grid(row=0, column=0)
+
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
 
@@ -27,7 +30,7 @@ class LeaptorGUI:
         windowHeight = 720
 
         self.canvas = tk.Canvas(self.mainFrame, width=windowWidth, height=windowHeight)
-        self.canvas.grid(row=0, column=0, columnspan=3, rowspan=7)
+        self.canvas.grid(row=0, column=0, columnspan=3, rowspan=9)
 
         texture = Image.open("pics/dino-texture.png")
         texture = texture.resize((windowWidth, windowHeight), Image.Resampling.LANCZOS)
@@ -82,15 +85,20 @@ class LeaptorGUI:
         self.button_remove_employee.grid(row=4, column=2)
 
         self.employee_list_box = tk.Listbox(self.mainFrame, width=40, height=25)
-        self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=6, pady=10)
+        self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=4, pady=10)
         self.employee_list_box.bind("<Double-1>", self.on_double_click)
 
+#       self.button_frame = tk.Frame(self.mainFrame)
+#       self.button_frame.grid(row=5, column=2)
+        
         self.button_load_file = tk.Button(self.mainFrame, text="Mitarbeiter aus Datei lesen", command=self.load_file)
         self.button_load_file.grid(row=5, column=2)
         self.button_save_file = tk.Button(self.mainFrame, text="Mitarbeiter in Datei speichern", command=self.save_file)
         self.button_save_file.grid(row=6, column=2)
         self.button_plot_performance = tk.Button(self.mainFrame, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
         self.button_plot_performance.grid(row=7, column=2)
+        self.button_show_team_lead = tk.Button(self.mainFrame, text="Teamleitung ansehen" )
+        self.button_show_team_lead.grid(row=8, column=2)
 
         self.mainFrame.tkraise()
 #       self.label_company = tk.Label(self.root, image=self.photo_company)
