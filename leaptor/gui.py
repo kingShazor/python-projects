@@ -8,13 +8,15 @@ class LeaptorGUI:
         self.employees = EmployeeList()
         self.root = tk.Tk()
         self.root.title("Leaptor")
-
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         #self.root.grid_rowconfigure(0, pad=5) todo wider wech
         #self.root.grid_columnconfigure(2, weight=1)
-        
+
+        self.mainFrame = tk.Frame(self.root)
+        self.mainFrame.grid(row=0, column=0)
+
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         self.rootFileDialog = tk.Tk()
         self.rootFileDialog.tk.call("source", "theme/azure.tcl")
@@ -24,7 +26,7 @@ class LeaptorGUI:
         windowWidth = 720
         windowHeight = 720
 
-        self.canvas = tk.Canvas(self.root, width=windowWidth, height=windowHeight)
+        self.canvas = tk.Canvas(self.mainFrame, width=windowWidth, height=windowHeight)
         self.canvas.grid(row=0, column=0, columnspan=3, rowspan=7)
 
         texture = Image.open("pics/dino-texture.png")
@@ -39,57 +41,58 @@ class LeaptorGUI:
 #       image_company = image_company.resize((140,140), Image.Resampling.LANCZOS)
 #       self.photo_company = ImageTk.PhotoImage(image_company)
 
-        self.label_avatar = tk.Label(self.root) 
+        self.label_avatar = tk.Label(self.mainFrame) 
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
         self.load_avatar(None)
-        self.label_name = tk.Label(self.root, text = "Vorname & Nachname:")
+        self.label_name = tk.Label(self.mainFrame, text = "Vorname & Nachname:")
         self.label_name.grid(row=0, column=1)
-        self.entry_name = tk.Entry(self.root)
+        self.entry_name = tk.Entry(self.mainFrame)
         self.entry_name.grid(row=0, column=2)
 
-        self.label_jobDesc = tk.Label(self.root, text="Jobprofil:")
+        self.label_jobDesc = tk.Label(self.mainFrame, text="Jobprofil:")
         self.label_jobDesc.grid(row=1, column=1)
-        self.entry_jobDesc = tk.Entry(self.root)
+        self.entry_jobDesc = tk.Entry(self.mainFrame)
         self.entry_jobDesc.grid(row=1, column=2)
 
-        self.label_salary = tk.Label(self.root, text="Gehaltsgruppe:")
+        self.label_salary = tk.Label(self.mainFrame, text="Gehaltsgruppe:")
         self.label_salary.grid(row=2, column=1)
 
-        self.salary_value = tk.StringVar(self.root)
+        self.salary_value = tk.StringVar(self.mainFrame)
         self.salary_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
         self.salary_default = 3
         self.salary_value.set(self.salary_values[self.salary_default])
-        self.entry_salary = tk.OptionMenu(self.root, self.salary_value, *self.salary_values)
+        self.entry_salary = tk.OptionMenu(self.mainFrame, self.salary_value, *self.salary_values)
         self.entry_salary.grid(row=2, column=2)
 
-        self.label_performance = tk.Label(self.root, text="Leistungsbewertung")
+        self.label_performance = tk.Label(self.mainFrame, text="Leistungsbewertung")
         self.label_performance.grid(row=3, column=1)
         
-        self.performance_value = tk.StringVar(self.root)
+        self.performance_value = tk.StringVar(self.mainFrame)
         self.performance_values = ["d","c","b3","b2","b1","a"]
         self.performance_default = 3
         self.performance_value.set(self.performance_values[self.performance_default])
-        self.entry_performance = tk.OptionMenu(self.root, self.performance_value, *self.performance_values)
+        self.entry_performance = tk.OptionMenu(self.mainFrame, self.performance_value, *self.performance_values)
         self.entry_performance.grid(row=3, column=2)
 
-        self.button_change_avatar = tk.Button(self.root, text="Profilbild ändern", command=self.get_avatar_path) # todo function
+        self.button_change_avatar = tk.Button(self.mainFrame, text="Profilbild ändern", command=self.get_avatar_path) # todo function
         self.button_change_avatar.grid(row=4, column=0)
-        self.button_save_employee = tk.Button(self.root, text="Mitarbeiter speichern", command=self.save_employee)
+        self.button_save_employee = tk.Button(self.mainFrame, text="Mitarbeiter speichern", command=self.save_employee)
         self.button_save_employee.grid(row=4, column=1)
-        self.button_remove_employee = tk.Button(self.root, text="Mitarbeiter löschen", command=self.remove_employee)
+        self.button_remove_employee = tk.Button(self.mainFrame, text="Mitarbeiter löschen", command=self.remove_employee)
         self.button_remove_employee.grid(row=4, column=2)
 
-        self.employee_list_box = tk.Listbox(self.root, width=40, height=25)
+        self.employee_list_box = tk.Listbox(self.mainFrame, width=40, height=25)
         self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=6, pady=10)
         self.employee_list_box.bind("<Double-1>", self.on_double_click)
 
-        self.button_load_file = tk.Button(self.root, text="Mitarbeiter aus Datei lesen", command=self.load_file)
+        self.button_load_file = tk.Button(self.mainFrame, text="Mitarbeiter aus Datei lesen", command=self.load_file)
         self.button_load_file.grid(row=5, column=2)
-        self.button_save_file = tk.Button(self.root, text="Mitarbeiter in Datei speichern", command=self.save_file)
+        self.button_save_file = tk.Button(self.mainFrame, text="Mitarbeiter in Datei speichern", command=self.save_file)
         self.button_save_file.grid(row=6, column=2)
-        self.button_plot_performance = tk.Button(self.root, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
+        self.button_plot_performance = tk.Button(self.mainFrame, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
         self.button_plot_performance.grid(row=7, column=2)
 
+        self.mainFrame.tkraise()
 #       self.label_company = tk.Label(self.root, image=self.photo_company)
 #       self.label_company.grid(row=10, column=2, pady=10)
 
