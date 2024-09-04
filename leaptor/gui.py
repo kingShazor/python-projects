@@ -9,14 +9,11 @@ class LeaptorGUI:
         self.root = tk.Tk()
         self.root.title("Leaptor")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        #self.root.grid_rowconfigure(0, pad=5) todo wider wech
-        #self.root.grid_columnconfigure(2, weight=1)
+        self.root.bind("<Configure>", self.resize)
 
         self.mainFrame = tk.Frame(self.root)
         self.mainFrame.grid(row=0, column=0)
-
-        self.teamLeadFrame = tk.Frame(self.root)
-        self.teamLeadFrame.grid(row=0, column=0)
+        self.currentFrame = self.mainFrame
 
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
@@ -26,23 +23,32 @@ class LeaptorGUI:
         self.rootFileDialog.tk.call("set_theme", "light")
         self.rootFileDialog.withdraw()
 
-        windowWidth = 720
-        windowHeight = 720
+        self.min_window_width = 725
+        self.min_window_height = 725
 
-        self.canvas = tk.Canvas(self.mainFrame, width=windowWidth, height=windowHeight)
+        self.canvas = tk.Canvas(self.mainFrame, width=self.min_window_width, height=self.min_window_height)
         self.canvas.grid(row=0, column=0, columnspan=3, rowspan=9)
 
-        texture = Image.open("pics/dino-texture.png")
-        texture = texture.resize((windowWidth, windowHeight), Image.Resampling.LANCZOS)
+        self.orig_texture = Image.open("pics/dino-texture.png")
+        texture = self.orig_texture.resize((self.min_window_width, self.min_window_height), Image.Resampling.LANCZOS)
         self.texture = ImageTk.PhotoImage(texture)
         
-        self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
+        self.background_image = self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
+        self.currentCanvas = self.canvas
+
+        self.teamLeadFrame = tk.Frame(self.root)
+        self.teamLeadFrame.grid(row=0, column=0)
+        self.canvas_team_lead = tk.Canvas(self.teamLeadFrame, width=self.min_window_width, height=self.min_window_height)
+        self.canvas_team_lead.grid(row=0, column=0)
+        self.background_team_lead = self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
+
 
         self.fallback_avatar = "pics/fallback.png"
 
 #       image_company = Image.open("pics/L-Tec.png")
 #       image_company = image_company.resize((140,140), Image.Resampling.LANCZOS)
 #       self.photo_company = ImageTk.PhotoImage(image_company)
+
 
         self.label_avatar = tk.Label(self.mainFrame) 
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
@@ -97,17 +103,60 @@ class LeaptorGUI:
         self.button_save_file.grid(row=6, column=2)
         self.button_plot_performance = tk.Button(self.mainFrame, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
         self.button_plot_performance.grid(row=7, column=2)
-        self.button_show_team_lead = tk.Button(self.mainFrame, text="Teamleitung ansehen" )
+        self.button_show_team_lead = tk.Button(self.mainFrame, text="Teamleitung ansehen", command=self.show_team_lead)
         self.button_show_team_lead.grid(row=8, column=2)
 
         self.mainFrame.tkraise()
-#       self.label_company = tk.Label(self.root, image=self.photo_company)
-#       self.label_company.grid(row=10, column=2, pady=10)
+
+        self.window_height = self.root.winfo_height()
+        self.window_width = self.root.winfo_width()
+
+        self.tl_name_label = tk.Label(self.teamLeadFrame, text="team lead test")
+        self.tl_name_label.grid(row=0, column=0)
+
 
     def on_closing(self):
         if self.rootFileDialog:
             self.rootFileDialog.destroy()
         self.root.destroy()
+
+    def resize(self, event):
+        new_width = self.root.winfo_width()
+        new_height = self.root.winfo_height()
+        #only consider the window resize
+        if event.width == new_width and event.height == new_height:
+            self.resize_background(new_width, new_height)
+
+    def redraw_background(self):
+            texture = self.orig_texture.resize((self.window_width, self.window_height), Image.Resampling.LANCZOS)
+            self.texture = ImageTk.PhotoImage(texture)
+            self.currentCanvas.config(width=self.window_width, height=self.window_height)
+            self.currentCanvas.itemconfig(self.background_image, image=self.texture) 
+
+    def resize_background(self, new_width, new_height):
+        if (new_height > self.min_window_height and new_width > self.min_window_width) and (abs(new_height - self.window_height) >4 or abs(new_width - self.window_width) >4):
+            self.window_width = new_width
+            self.window_height = new_height
+            self.redraw_background()
+            print(f"resize: {new_width}, {new_height}")
+
+
+            #self.canvas.itemconfig(self.
+
+    def show_team_lead(self):
+        print("Show team lead")
+        last_width = self.currentFrame.winfo_width()
+        last_height = self.currentFrame.winfo_height()
+        self.currentFrame.grid_forget()
+        self.currentFrame = self.teamLeadFrame
+        #self.canvas_team_lead.config(width=last_width, height=last_height)
+        #self.background_team_lead = self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
+        self.currentCanvas = self.canvas_team_lead
+        self.redraw_background()
+
+        #self.currentFrame.grid(row=0, column=0)
+
+        self.currentFrame.tkraise()
 
     def load_avatar(self, avatar_path):
         self.avatar_path = avatar_path
