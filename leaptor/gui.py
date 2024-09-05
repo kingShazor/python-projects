@@ -18,7 +18,7 @@ class LeaptorFrame(tk.Frame):
         controller = properties.main_controller
         self.canvas = tk.Canvas(self, width=controller.root.winfo_width(), height=controller.root.winfo_height())
         self.canvas.grid(row=0, column=0, columnspan=properties.columns, rowspan=properties.rows)
-        self.background = self.canvas.create_image(0,0, anchor=tk.NW, image=controller.texture)
+        self.background = self.canvas.create_image(30,30, anchor=tk.NW, image=controller.texture)
 
 
 class LeaptorGUI:
@@ -135,19 +135,23 @@ class LeaptorGUI:
 
         #only consider the window resize
         #if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
-        if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
+        if event.widget is self.root: #and (new_width != self.window_width or new_height != self.window_height):
+            print(f"positon: {event.x},{event.y}")
             self.root.after(50,self.resize_background, new_width, new_height)
 
     def redraw_background(self):
         texture = self.orig_texture.resize((self.window_width -2, self.window_height -2), Image.Resampling.LANCZOS)
         self.texture = ImageTk.PhotoImage(texture)
-        currentFrame = self.currentFrame
-        canvas = currentFrame.canvas
-        canvas.config(width=self.window_width -2, height=self.window_height -2)
-        canvas.itemconfig(currentFrame.background, image=self.texture)
-        # coords needed, because reducing size can lead to positioning failure (after change of frame)
-        canvas.coords(currentFrame.background, 0,0)
-        print(f"widget: {currentFrame}, position-root: {self.root.winfo_x()},{self.root.winfo_y()} position-canvas: {canvas.winfo_x()},{canvas.winfo_y()}")
+        for currentFrame in (self.mainFrame, self.companyFrame, self.teamLeadFrame):
+            #print(f"currentFrame: {currentFrame}")
+            #currentFrame = self.currentFrame
+            canvas = currentFrame.canvas
+            canvas.config(width=self.window_width -2, height=self.window_height -2)
+            canvas.itemconfig(currentFrame.background, image=self.texture)
+            # coords needed, because reducing size can lead to positioning failure (after change of frame)
+            canvas.coords(currentFrame.background, 0, 0)
+            print(f"widget: {currentFrame}, position-root: {self.root.winfo_x()},{self.root.winfo_y()} position-canvas: {canvas.winfo_x()},{canvas.winfo_y()}")
+            self.root.update_idletasks()
 
     def resize_background(self, new_width, new_height):
         #if abs(new_height - self.window_height) >4 or abs(new_width - self.window_width) >4:
@@ -167,7 +171,6 @@ class LeaptorGUI:
         self.currentFrame = self.nextFrame()
         self.redraw_background()
 
-        self.root.update_idletasks()
         self.currentFrame.tkraise()
 
     def load_avatar(self, avatar_path):
