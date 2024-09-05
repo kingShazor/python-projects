@@ -18,7 +18,9 @@ class LeaptorFrame(tk.Frame):
         controller = properties.main_controller
         self.canvas = tk.Canvas(self, width=controller.min_window_width, height=controller.min_window_height)
         self.canvas.grid(row=0, column=0, columnspan=properties.columns, rowspan=properties.rows)
-
+        background = self.canvas.create_image(0,0, anchor=tk.NW, image=controller.texture)
+        if not controller.background_image:
+            controller.background_image = background
 
 
 class LeaptorGUI:
@@ -39,30 +41,21 @@ class LeaptorGUI:
 
         self.min_window_width = 725
         self.min_window_height = 725
-
-        mainFrameProperties = FrameProperties(self, 9,3)
-        self.mainFrame = LeaptorFrame(mainFrameProperties, self.root)
-        self.currentFrame = self.mainFrame
-        currentCanvas = self.currentFrame.canvas
         self.orig_texture = Image.open("pics/dino-texture.png")
+        self.background_image = None
 
         texture = self.orig_texture.resize((self.min_window_width, self.min_window_height), Image.Resampling.LANCZOS)
         self.texture = ImageTk.PhotoImage(texture)
-        
-        self.background_image = currentCanvas.create_image(0,0, anchor=tk.NW, image=self.texture)
-
-        self.teamLeadFrame = tk.Frame(self.root)
-        self.teamLeadFrame.grid(row=0, column=0)
-        self.canvas_team_lead = tk.Canvas(self.teamLeadFrame, width=self.min_window_width, height=self.min_window_height)
-        self.canvas_team_lead.grid(row=0, column=0)
-        self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
-
-        self.companyFrame = tk.Frame(self.root)
-        self.companyFrame.grid(row=0, column=0)
-        self.canvas_company = tk.Canvas(self.companyFrame, width=self.min_window_width, height=self.min_window_height)
-        self.canvas_company.create_image(0,0, anchor=tk.NW, image=self.texture)
-
         self.fallback_avatar = "pics/fallback.png"
+
+        mainFrameProperties = FrameProperties(self, 9,3)
+        self.mainFrame = LeaptorFrame(mainFrameProperties, self.root)
+        teamLeadFrameProperties = FrameProperties(self, 2, 1)
+        self.teamLeadFrame = LeaptorFrame(teamLeadFrameProperties, self.root)
+        companyFrameProperties = FrameProperties(self, 2, 1)
+        self.companyFrame = LeaptorFrame(companyFrameProperties, self.root)
+
+        self.currentFrame = self.mainFrame
 
 #       image_company = Image.open("pics/L-Tec.png")
 #       image_company = image_company.resize((140,140), Image.Resampling.LANCZOS)
@@ -122,8 +115,8 @@ class LeaptorGUI:
         self.button_save_file.grid(row=6, column=2)
         self.button_plot_performance = tk.Button(self.mainFrame, text="Teamleistungsbewertung anzeigen", command=self.plot_performance)
         self.button_plot_performance.grid(row=7, column=2)
-        self.button_show_team_lead = tk.Button(self.mainFrame, text="Teamleitung ansehen", command=self.show_team_lead)
-        self.button_show_team_lead.grid(row=8, column=2)
+        self.button_show_next_frame = tk.Button(self.mainFrame, text="Ansicht wechseln", command=self.change_frame)
+        self.button_show_next_frame.grid(row=8, column=2)
 
         self.mainFrame.tkraise()
 
@@ -132,7 +125,13 @@ class LeaptorGUI:
 
         self.tl_name_label = tk.Label(self.teamLeadFrame, text="team lead test")
         self.tl_name_label.grid(row=0, column=0)
-        #self.tl_button_show_next = tk.Button(
+        self.tl_button_show_next_frame = tk.Button(self.teamLeadFrame, text="Ansicht wechseln", command=self.change_frame)
+        self.tl_button_show_next_frame.grid(row=1, column=0)
+
+        self.company_name_label = tk.Label(self.companyFrame, text="company text")
+        self.company_name_label.grid(row=0, column=0)
+        self.company_button_show_next_frame = tk.Button(self.companyFrame, text="Ansicht wechseln", command=self.change_frame)
+        self.company_button_show_next_frame.grid(row=1, column=0)
 
 
     def on_closing(self):
@@ -164,18 +163,20 @@ class LeaptorGUI:
 
             #self.canvas.itemconfig(self.
 
-    def show_team_lead(self):
-        print("Show team lead")
-        last_width = self.currentFrame.winfo_width()
-        last_height = self.currentFrame.winfo_height()
-        self.currentFrame.grid_forget()
-        self.currentFrame = self.teamLeadFrame
-        #self.canvas_team_lead.config(width=last_width, height=last_height)
-        #self.background_team_lead = self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
-        self.currentCanvas = self.canvas_team_lead
-        self.redraw_background()
+    def nextFrame(self):
+        if self.currentFrame is self.mainFrame:
+            return self.teamLeadFrame
+        if self.currentFrame is self.teamLeadFrame:
+            return self.companyFrame
+        return self.mainFrame
 
-        #self.currentFrame.grid(row=0, column=0)
+    def change_frame(self):
+        print("Show team lead")
+        #last_width = self.currentFrame.winfo_width()
+        #last_height = self.currentFrame.winfo_height()
+        self.currentFrame.grid_forget()
+        self.currentFrame = self.nextFrame()
+        self.redraw_background()
 
         self.currentFrame.tkraise()
 
