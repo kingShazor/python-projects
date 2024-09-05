@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, ttk, filedialog
+from tkinter import ANCHOR, messagebox, ttk, filedialog
 from data import *
 from PIL import Image, ImageTk
 
@@ -16,11 +16,9 @@ class LeaptorFrame(tk.Frame):
 
         self.grid(row=0, column=0)
         controller = properties.main_controller
-        self.canvas = tk.Canvas(self, width=controller.min_window_width, height=controller.min_window_height)
+        self.canvas = tk.Canvas(self, width=controller.root.winfo_width(), height=controller.root.winfo_height())
         self.canvas.grid(row=0, column=0, columnspan=properties.columns, rowspan=properties.rows)
-        background = self.canvas.create_image(0,0, anchor=tk.NW, image=controller.texture)
-        if not controller.background_image:
-            controller.background_image = background
+        self.background = self.canvas.create_image(0,0, anchor=tk.NW, image=controller.texture)
 
 
 class LeaptorGUI:
@@ -33,35 +31,31 @@ class LeaptorGUI:
 
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
+        self.root.minsize(730,730)
 
         self.rootFileDialog = tk.Tk()
         self.rootFileDialog.tk.call("source", "theme/azure.tcl")
         self.rootFileDialog.tk.call("set_theme", "light")
         self.rootFileDialog.withdraw()
 
-        self.min_window_width = 725
-        self.min_window_height = 725
         self.orig_texture = Image.open("pics/dino-texture.png")
-        self.background_image = None
 
-        texture = self.orig_texture.resize((self.min_window_width, self.min_window_height), Image.Resampling.LANCZOS)
+        texture = self.orig_texture.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
         self.texture = ImageTk.PhotoImage(texture)
         self.fallback_avatar = "pics/fallback.png"
 
         mainFrameProperties = FrameProperties(self, 9,3)
-        self.mainFrame = LeaptorFrame(mainFrameProperties, self.root)
+        self.mainFrame = LeaptorFrame(mainFrameProperties, self.root, name="mainFrame")
         teamLeadFrameProperties = FrameProperties(self, 2, 1)
-        self.teamLeadFrame = LeaptorFrame(teamLeadFrameProperties, self.root)
+        self.teamLeadFrame = LeaptorFrame(teamLeadFrameProperties, self.root, name="teamLeadFrame")
         companyFrameProperties = FrameProperties(self, 2, 1)
-        self.companyFrame = LeaptorFrame(companyFrameProperties, self.root)
+        self.companyFrame = LeaptorFrame(companyFrameProperties, self.root, name="companyFrame")
 
         self.currentFrame = self.mainFrame
 
 #       image_company = Image.open("pics/L-Tec.png")
 #       image_company = image_company.resize((140,140), Image.Resampling.LANCZOS)
 #       self.photo_company = ImageTk.PhotoImage(image_company)
-
-
         self.label_avatar = tk.Label(self.mainFrame) 
         self.label_avatar.grid(row=0, column=0, pady=10, rowspan=4)
         self.load_avatar(None)
@@ -106,9 +100,6 @@ class LeaptorGUI:
         self.employee_list_box.grid(row=5, columnspan=2, column=0, rowspan=4, pady=10)
         self.employee_list_box.bind("<Double-1>", self.on_double_click)
 
-#       self.button_frame = tk.Frame(self.mainFrame)
-#       self.button_frame.grid(row=5, column=2)
-        
         self.button_load_file = tk.Button(self.mainFrame, text="Mitarbeiter aus Datei lesen", command=self.load_file)
         self.button_load_file.grid(row=5, column=2)
         self.button_save_file = tk.Button(self.mainFrame, text="Mitarbeiter in Datei speichern", command=self.save_file)
@@ -133,7 +124,6 @@ class LeaptorGUI:
         self.company_button_show_next_frame = tk.Button(self.companyFrame, text="Ansicht wechseln", command=self.change_frame)
         self.company_button_show_next_frame.grid(row=1, column=0)
 
-
     def on_closing(self):
         if self.rootFileDialog:
             self.rootFileDialog.destroy()
@@ -142,27 +132,29 @@ class LeaptorGUI:
     def resize(self, event):
         new_width = self.root.winfo_width()
         new_height = self.root.winfo_height()
+
         #only consider the window resize
-        if event.width == new_width and event.height == new_height:
-            self.resize_background(new_width, new_height)
+        #if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
+        if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
+            self.root.after(50,self.resize_background, new_width, new_height)
 
     def redraw_background(self):
-            texture = self.orig_texture.resize((self.window_width, self.window_height), Image.Resampling.LANCZOS)
-            self.texture = ImageTk.PhotoImage(texture)
-            canvas = self.currentFrame.canvas
-            canvas.config(width=self.window_width, height=self.window_height)
-            canvas.itemconfig(self.background_image, image=self.texture) 
+        texture = self.orig_texture.resize((self.window_width -2, self.window_height -2), Image.Resampling.LANCZOS)
+        self.texture = ImageTk.PhotoImage(texture)
+        currentFrame = self.currentFrame
+        canvas = currentFrame.canvas
+        canvas.config(width=self.window_width -2, height=self.window_height -2)
+        canvas.itemconfig(currentFrame.background, image=self.texture)
+        # coords needed, because reducing size can lead to positioning failure (after change of frame)
+        canvas.coords(currentFrame.background, 0,0)
+        print(f"widget: {currentFrame}, position-root: {self.root.winfo_x()},{self.root.winfo_y()} position-canvas: {canvas.winfo_x()},{canvas.winfo_y()}")
 
     def resize_background(self, new_width, new_height):
-        if (new_height > self.min_window_height and new_width > self.min_window_width) and (abs(new_height - self.window_height) >4 or abs(new_width - self.window_width) >4):
+        #if abs(new_height - self.window_height) >4 or abs(new_width - self.window_width) >4:
             self.window_width = new_width
             self.window_height = new_height
             self.redraw_background()
-            print(f"resize: {new_width}, {new_height}")
-
-
-            #self.canvas.itemconfig(self.
-
+    
     def nextFrame(self):
         if self.currentFrame is self.mainFrame:
             return self.teamLeadFrame
@@ -172,12 +164,10 @@ class LeaptorGUI:
 
     def change_frame(self):
         print("Show team lead")
-        #last_width = self.currentFrame.winfo_width()
-        #last_height = self.currentFrame.winfo_height()
-        self.currentFrame.grid_forget()
         self.currentFrame = self.nextFrame()
         self.redraw_background()
 
+        self.root.update_idletasks()
         self.currentFrame.tkraise()
 
     def load_avatar(self, avatar_path):
