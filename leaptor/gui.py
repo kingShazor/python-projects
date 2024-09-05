@@ -3,6 +3,24 @@ from tkinter import messagebox, ttk, filedialog
 from data import *
 from PIL import Image, ImageTk
 
+
+class FrameProperties:
+    def __init__(self, main_controller, rows, columns ):
+        self.rows=rows
+        self.columns=columns
+        self.main_controller = main_controller
+
+class LeaptorFrame(tk.Frame):
+    def __init__(self, properties, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.grid(row=0, column=0)
+        controller = properties.main_controller
+        self.canvas = tk.Canvas(self, width=controller.min_window_width, height=controller.min_window_height)
+        self.canvas.grid(row=0, column=0, columnspan=properties.columns, rowspan=properties.rows)
+
+
+
 class LeaptorGUI:
     def __init__(self):
         self.employees = EmployeeList()
@@ -10,10 +28,6 @@ class LeaptorGUI:
         self.root.title("Leaptor")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.bind("<Configure>", self.resize)
-
-        self.mainFrame = tk.Frame(self.root)
-        self.mainFrame.grid(row=0, column=0)
-        self.currentFrame = self.mainFrame
 
         self.root.tk.call("source", "theme/azure.tcl")
         self.root.tk.call("set_theme", "dark")
@@ -26,22 +40,27 @@ class LeaptorGUI:
         self.min_window_width = 725
         self.min_window_height = 725
 
-        self.canvas = tk.Canvas(self.mainFrame, width=self.min_window_width, height=self.min_window_height)
-        self.canvas.grid(row=0, column=0, columnspan=3, rowspan=9)
-
+        mainFrameProperties = FrameProperties(self, 9,3)
+        self.mainFrame = LeaptorFrame(mainFrameProperties, self.root)
+        self.currentFrame = self.mainFrame
+        currentCanvas = self.currentFrame.canvas
         self.orig_texture = Image.open("pics/dino-texture.png")
+
         texture = self.orig_texture.resize((self.min_window_width, self.min_window_height), Image.Resampling.LANCZOS)
         self.texture = ImageTk.PhotoImage(texture)
         
-        self.background_image = self.canvas.create_image(0,0, anchor=tk.NW, image=self.texture)
-        self.currentCanvas = self.canvas
+        self.background_image = currentCanvas.create_image(0,0, anchor=tk.NW, image=self.texture)
 
         self.teamLeadFrame = tk.Frame(self.root)
         self.teamLeadFrame.grid(row=0, column=0)
         self.canvas_team_lead = tk.Canvas(self.teamLeadFrame, width=self.min_window_width, height=self.min_window_height)
         self.canvas_team_lead.grid(row=0, column=0)
-        self.background_team_lead = self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
+        self.canvas_team_lead.create_image(0,0, anchor=tk.NW, image=self.texture)
 
+        self.companyFrame = tk.Frame(self.root)
+        self.companyFrame.grid(row=0, column=0)
+        self.canvas_company = tk.Canvas(self.companyFrame, width=self.min_window_width, height=self.min_window_height)
+        self.canvas_company.create_image(0,0, anchor=tk.NW, image=self.texture)
 
         self.fallback_avatar = "pics/fallback.png"
 
@@ -113,6 +132,7 @@ class LeaptorGUI:
 
         self.tl_name_label = tk.Label(self.teamLeadFrame, text="team lead test")
         self.tl_name_label.grid(row=0, column=0)
+        #self.tl_button_show_next = tk.Button(
 
 
     def on_closing(self):
@@ -130,8 +150,9 @@ class LeaptorGUI:
     def redraw_background(self):
             texture = self.orig_texture.resize((self.window_width, self.window_height), Image.Resampling.LANCZOS)
             self.texture = ImageTk.PhotoImage(texture)
-            self.currentCanvas.config(width=self.window_width, height=self.window_height)
-            self.currentCanvas.itemconfig(self.background_image, image=self.texture) 
+            canvas = self.currentFrame.canvas
+            canvas.config(width=self.window_width, height=self.window_height)
+            canvas.itemconfig(self.background_image, image=self.texture) 
 
     def resize_background(self, new_width, new_height):
         if (new_height > self.min_window_height and new_width > self.min_window_width) and (abs(new_height - self.window_height) >4 or abs(new_width - self.window_width) >4):
