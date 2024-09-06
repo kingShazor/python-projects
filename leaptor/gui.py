@@ -44,9 +44,9 @@ class LeaptorGUI:
         self.texture = ImageTk.PhotoImage(texture)
         self.fallback_avatar = "pics/fallback.png"
 
-        mainFrameProperties = FrameProperties(self, 9,3)
+        mainFrameProperties = FrameProperties(self, 9, 3)
         self.mainFrame = LeaptorFrame(mainFrameProperties, self.root, name="mainFrame")
-        teamLeadFrameProperties = FrameProperties(self, 2, 1)
+        teamLeadFrameProperties = FrameProperties(self, 5, 2)
         self.teamLeadFrame = LeaptorFrame(teamLeadFrameProperties, self.root, name="teamLeadFrame")
         companyFrameProperties = FrameProperties(self, 2, 1)
         self.companyFrame = LeaptorFrame(companyFrameProperties, self.root, name="companyFrame")
@@ -114,10 +114,30 @@ class LeaptorGUI:
         self.window_height = self.root.winfo_height()
         self.window_width = self.root.winfo_width()
 
-        self.tl_name_label = tk.Label(self.teamLeadFrame, text="team lead test")
-        self.tl_name_label.grid(row=0, column=0)
+        image = Image.open("pics/Teamleiter.png")
+        image = image.resize((230,230), Image.Resampling.LANCZOS)
+        self.team_lead_avatar = ImageTk.PhotoImage(image)
+        image = Image.open("pics/Firmenwagen.png")
+        image = image.resize((200,200), Image.Resampling.LANCZOS)
+        self.car = ImageTk.PhotoImage(image)
+
+        self.label_avatar = tk.Label(self.teamLeadFrame) 
+        self.label_avatar.grid(row=0, column=0, pady=20, rowspan=2)
+        self.label_avatar.config(image=self.team_lead_avatar)
+
+        self.tl_name_label = tk.Label(self.teamLeadFrame, text="Name:  Dr. Überstein")
+        self.tl_name_label.grid(row=0, column=1)
+        self.tl_position_label = tk.Label(self.teamLeadFrame, text="Position:  Teamleitung")
+        self.tl_position_label.grid(row=1, column=1)
+        self.tl_salary_label = tk.Label(self.teamLeadFrame, text="Gehalt:   250000(Boni zzgl.)")
+        self.tl_salary_label.grid(row=2, column=1)
+        self.tl_car_label = tk.Label(self.teamLeadFrame, text="Firmenwagen:\nLamborghini Rapido", justify="left")
+        self.tl_car_label.grid(row=3, column=0)
+        self.tl_car = tk.Label(self.teamLeadFrame, image=self.car)
+        self.tl_car.grid(row=3, column=1)
+
         self.tl_button_show_next_frame = tk.Button(self.teamLeadFrame, text="Ansicht wechseln", command=self.change_frame)
-        self.tl_button_show_next_frame.grid(row=1, column=0)
+        self.tl_button_show_next_frame.grid(row=4, column=1)
 
         self.company_name_label = tk.Label(self.companyFrame, text="company text")
         self.company_name_label.grid(row=0, column=0)
@@ -135,7 +155,7 @@ class LeaptorGUI:
 
         #only consider the window resize
         #if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
-        if event.widget is self.root: #and (new_width != self.window_width or new_height != self.window_height):
+        if event.widget is self.root and (new_width != self.window_width or new_height != self.window_height):
             print(f"positon: {event.x},{event.y}")
             self.root.after(50,self.resize_background, new_width, new_height)
 
